@@ -528,6 +528,31 @@ run_wizard() {
     # Collect inputs
     print_step "Collecting Input Parameters"
     
+    # Auto-detect files for defaults
+    AUTO_EXCEL=""
+    AUTO_ZIP=""
+    AUTO_TEMPLATE=""
+    
+    # Find Excel file
+    excel_files=(*.xlsx *.xls)
+    if [ -f "${excel_files[0]}" ]; then
+        AUTO_EXCEL="${excel_files[0]}"
+    fi
+    
+    # Find ZIP file
+    zip_files=(*.zip)
+    if [ -f "${zip_files[0]}" ]; then
+        AUTO_ZIP="${zip_files[0]}"
+    fi
+    
+    # Find template file (exclude task files)
+    for file in *.docx; do
+        if [ -f "$file" ] && [[ ! "$file" =~ ^[0-9]{4}-[A-Z]{2}-[0-9] ]]; then
+            AUTO_TEMPLATE="$file"
+            break
+        fi
+    done
+    
     # Year
     while true; do
         prompt_input "📅 Enter the competition year (e.g., 2025)" YEAR "2025"
@@ -538,7 +563,7 @@ run_wizard() {
     
     # Excel file
     while true; do
-        prompt_input "📊 Enter path to Excel file (with task list in column O)" EXCEL_FILE
+        prompt_input "📊 Enter path to Excel file (with task list in column O)" EXCEL_FILE "$AUTO_EXCEL"
         if [ -n "$EXCEL_FILE" ] && validate_file_exists "$EXCEL_FILE" "Excel file"; then
             break
         fi
@@ -546,7 +571,7 @@ run_wizard() {
     
     # ZIP file
     while true; do
-        prompt_input "📦 Enter path to ZIP file (containing all task .docx files)" ZIP_FILE
+        prompt_input "📦 Enter path to ZIP file (containing all task .docx files)" ZIP_FILE "$AUTO_ZIP"
         if [ -n "$ZIP_FILE" ] && validate_file_exists "$ZIP_FILE" "ZIP file"; then
             break
         fi
@@ -562,7 +587,7 @@ run_wizard() {
     
     # Template file
     while true; do
-        prompt_input "📄 Enter path to blank Word template file" TEMPLATE_FILE
+        prompt_input "📄 Enter path to blank Word template file" TEMPLATE_FILE "$AUTO_TEMPLATE"
         if [ -n "$TEMPLATE_FILE" ] && validate_file_exists "$TEMPLATE_FILE" "Template file"; then
             break
         fi
