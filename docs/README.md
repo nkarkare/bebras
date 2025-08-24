@@ -4,6 +4,19 @@
 
 This document provides step-by-step instructions for processing Bebras tasks for the annual competition. The process involves extracting task lists from Excel files, organizing files by language, and preparing numbered documents for mail merge operations. This system is designed to work on both macOS/Linux and Windows platforms.
 
+## 🚀 Quick Start with Bebras Wizard
+
+**New users should start with the interactive wizard:**
+
+```bash
+# Simply run the wizard and answer the prompts
+./scripts/bebras_wizard.sh
+```
+
+The wizard will guide you through the entire process automatically. See [WIZARD_USAGE.md](WIZARD_USAGE.md) for detailed instructions.
+
+**Continue reading below for manual processing or to understand the underlying steps.**
+
 ## Prerequisites
 
 ### Software Requirements
