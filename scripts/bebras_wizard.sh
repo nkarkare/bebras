@@ -307,14 +307,7 @@ organize_by_language() {
 process_and_number_files() {
     print_step "Processing and numbering files for mail merge"
     
-    # Convert template file path to absolute path to avoid issues
-    if [[ "$TEMPLATE_FILE" = /* ]]; then
-        # Already absolute path
-        TEMPLATE_FILE_ABS="$TEMPLATE_FILE"
-    else
-        # Convert relative path to absolute
-        TEMPLATE_FILE_ABS="$(pwd)/$TEMPLATE_FILE"
-    fi
+    # Use the already converted absolute template path
     
     cd "$WORKING_DIR"
     
@@ -598,6 +591,14 @@ run_wizard() {
     while true; do
         prompt_input "📄 Enter path to blank Word template file" TEMPLATE_FILE "$AUTO_TEMPLATE"
         if [ -n "$TEMPLATE_FILE" ] && validate_file_exists "$TEMPLATE_FILE" "Template file"; then
+            # Convert to absolute path immediately after validation
+            if [[ "$TEMPLATE_FILE" = /* ]]; then
+                # Already absolute path
+                TEMPLATE_FILE_ABS="$TEMPLATE_FILE"
+            else
+                # Convert relative path to absolute
+                TEMPLATE_FILE_ABS="$(pwd)/$TEMPLATE_FILE"
+            fi
             break
         fi
     done
