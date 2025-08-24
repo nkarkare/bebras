@@ -1,0 +1,33 @@
+# Secret task files - DO NOT COMMIT
+tasks/
+*.xlsx
+tasks.txt
+Bebras_questions_and_solutions_empty.docx
+
+# Generated directories
+EN/
+GU/
+MR/
+KA/
+TA/
+OR/
+TE/
+HI/
+BN/
+PA/
+Processed/
+
+# System files
+.DS_Store
+*.tmp
+~$*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+env/
+.env
