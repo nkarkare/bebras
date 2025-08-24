@@ -157,6 +157,9 @@ extract_tasks() {
     print_step "Extracting tasks from Excel file"
     
     # Create Python script for extraction
+    # Convert relative path to absolute path to avoid issues
+    EXCEL_FILE_ABS="$(cd "$(dirname "$EXCEL_FILE")" && pwd)/$(basename "$EXCEL_FILE")"
+    
     cat > "$WORKING_DIR/extract_tasks.py" << EOF
 #!/usr/bin/env python3
 import pandas as pd
@@ -164,10 +167,14 @@ import sys
 import os
 
 def extract_tasks():
-    excel_file = r"""$EXCEL_FILE"""
+    excel_file = os.path.abspath(r"$EXCEL_FILE_ABS")
     
     try:
         print(f"Reading Excel file: {excel_file}")
+        if not os.path.exists(excel_file):
+            print(f"Error: Excel file does not exist: {excel_file}")
+            return False
+            
         df = pd.read_excel(excel_file)
         
         if len(df.columns) <= 14:
@@ -182,7 +189,7 @@ def extract_tasks():
             print("No tasks found in column O starting from row 2")
             return False
         
-        output_file = r"""$WORKING_DIR/tasks.txt"""
+        output_file = os.path.abspath(r"$WORKING_DIR/tasks.txt")
         with open(output_file, 'w', encoding='utf-8') as f:
             for task in tasks:
                 f.write(f"{task}\\n")
@@ -537,7 +544,7 @@ run_wizard() {
     
     # Languages
     while true; do
-        prompt_input "🌐 Enter target languages (comma-separated, e.g., EN,GU,MR)" LANGUAGES "EN,GU,MR,HI"
+        prompt_input "🌐 Enter target languages (comma-separated, e.g., EN,GU,MR) [EN,GU,MR,HI,BN,KA,OR,PA,TA,TE]" LANGUAGES "EN,GU,MR,HI,BN,KA,OR,PA,TA,TE"
         if validate_languages; then
             break
         fi
