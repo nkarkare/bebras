@@ -378,6 +378,97 @@ process_and_number_files() {
     print_success "File processing completed. Total files processed: $count"
 }
 
+# Function to check for duplicates and missing files
+check_file_integrity() {
+    print_step "Validating file integrity and checking for duplicates"
+    
+    cd "$WORKING_DIR/Processed"
+    
+    local validation_errors=0
+    
+    # Check each language
+    IFS=',' read -ra LANG_ARRAY <<< "$LANGUAGES"
+    for lang in "${LANG_ARRAY[@]}"; do
+        if [ "$lang" != "EN" ]; then
+            continue  # Skip non-English languages for now as they only have questions
+        fi
+        
+        print_info "Checking $lang files..."
+        cd "$lang"
+        
+        # Count regular task files and solution files
+        regular_files=$(ls -1 *.docx 2>/dev/null | grep -E "_EN\.docx$" | wc -l)
+        solution_files=$(ls -1 *.docx 2>/dev/null | grep -E "_EN_SOLN\.docx$" | wc -l)
+        
+        print_info "Found $regular_files task files and $solution_files solution files"
+        
+        # Create temporary files for comparison
+        ls -1 *.docx 2>/dev/null | grep -E "_EN\.docx$" | sed 's/^[0-9]*_//' | sed 's/_EN\.docx$//' | sort > /tmp/regular_tasks_${lang}.txt
+        ls -1 *.docx 2>/dev/null | grep -E "_EN_SOLN\.docx$" | sed 's/^[0-9]*_//' | sed 's/_EN_SOLN\.docx$//' | sort > /tmp/solution_tasks_${lang}.txt
+        
+        # Find missing solutions
+        missing_solutions=$(comm -23 /tmp/regular_tasks_${lang}.txt /tmp/solution_tasks_${lang}.txt)
+        if [ -n "$missing_solutions" ]; then
+            print_warning "Missing solution files for $lang:"
+            echo "$missing_solutions" | while read task; do
+                print_warning "  - ${task}_EN_SOLN.docx"
+                ((validation_errors++))
+            done
+        fi
+        
+        # Find orphaned solutions
+        orphaned_solutions=$(comm -13 /tmp/regular_tasks_${lang}.txt /tmp/solution_tasks_${lang}.txt)
+        if [ -n "$orphaned_solutions" ]; then
+            print_warning "Orphaned solution files for $lang (no corresponding task):"
+            echo "$orphaned_solutions" | while read task; do
+                print_warning "  - ${task}_EN_SOLN.docx"
+                ((validation_errors++))
+            done
+        fi
+        
+        # Check for exact duplicates by file size
+        print_info "Checking for duplicate files..."
+        duplicate_count=0
+        while IFS= read -r file1; do
+            while IFS= read -r file2; do
+                if [ "$file1" != "$file2" ] && [ -f "$file1" ] && [ -f "$file2" ]; then
+                    size1=$(stat -f%z "$file1" 2>/dev/null || stat -c%s "$file1" 2>/dev/null)
+                    size2=$(stat -f%z "$file2" 2>/dev/null || stat -c%s "$file2" 2>/dev/null)
+                    
+                    if [ "$size1" = "$size2" ]; then
+                        if cmp -s "$file1" "$file2"; then
+                            print_warning "Duplicate files found: $file1 and $file2"
+                            ((duplicate_count++))
+                            ((validation_errors++))
+                        fi
+                    fi
+                fi
+            done < <(ls -1 *.docx 2>/dev/null)
+        done < <(ls -1 *.docx 2>/dev/null)
+        
+        if [ $duplicate_count -eq 0 ]; then
+            print_success "No duplicate files found in $lang"
+        fi
+        
+        # Clean up temp files
+        rm -f /tmp/regular_tasks_${lang}.txt /tmp/solution_tasks_${lang}.txt
+        
+        cd ..
+    done
+    
+    cd - > /dev/null
+    
+    # Summary
+    if [ $validation_errors -eq 0 ]; then
+        print_success "✅ File integrity check passed - no issues found"
+    else
+        print_warning "⚠️  File integrity check found $validation_errors issue(s)"
+        print_info "You may want to investigate these issues before proceeding with mail merge"
+    fi
+    
+    return $validation_errors
+}
+
 # Function to display final instructions
 show_final_instructions() {
     print_step "FINAL INSTRUCTIONS"
@@ -629,6 +720,7 @@ run_wizard() {
     extract_and_organize_files
     organize_by_language
     process_and_number_files
+    check_file_integrity
     show_final_instructions
 }
 
