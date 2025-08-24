@@ -232,6 +232,9 @@ EOF
 extract_and_organize_files() {
     print_step "Extracting and organizing task files"
     
+    # Convert ZIP file path to absolute path to avoid issues
+    ZIP_FILE_ABS="$(cd "$(dirname "$ZIP_FILE")" && pwd)/$(basename "$ZIP_FILE")"
+    
     # Extract ZIP file
     print_info "Extracting ZIP file: $ZIP_FILE"
     cd "$WORKING_DIR"
@@ -241,7 +244,7 @@ extract_and_organize_files() {
     
     # Extract ZIP
     if command -v unzip >/dev/null 2>&1; then
-        unzip -q "$ZIP_FILE" -d tasks/ || {
+        unzip -q "$ZIP_FILE_ABS" -d tasks/ || {
             print_error "Failed to extract ZIP file"
             exit 1
         }
