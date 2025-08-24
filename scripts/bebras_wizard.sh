@@ -400,6 +400,103 @@ show_final_instructions() {
     print_success "🔒 Secret files (tasks, Excel, ZIP) remain secure and were not processed into the final output"
 }
 
+# Function to check for required files in current directory
+check_required_files() {
+    print_step "Checking for required files in current directory"
+    echo ""
+    
+    print_info "📋 REQUIRED FILES CHECKLIST:"
+    echo ""
+    echo -e "${BLUE}The wizard needs these 3 files to process Bebras tasks:${NC}"
+    echo ""
+    echo -e "${YELLOW}1. 📊 Excel File${NC} - Contains task list in column O (starting from row 2)"
+    echo -e "${YELLOW}2. 📦 ZIP File${NC} - Contains all task .docx files"
+    echo -e "${YELLOW}3. 📄 Template File${NC} - Blank Word document template (.docx)"
+    echo ""
+    
+    # Scan current directory for potential files
+    print_info "🔍 Scanning current directory for matching files..."
+    echo ""
+    
+    # Look for Excel files
+    excel_files=(*.xlsx *.xls)
+    if [ -f "${excel_files[0]}" ]; then
+        print_success "Found Excel file(s):"
+        for file in "${excel_files[@]}"; do
+            if [ -f "$file" ]; then
+                echo -e "  ${GREEN}✓${NC} $file"
+            fi
+        done
+    else
+        print_warning "No Excel files (.xlsx/.xls) found in current directory"
+    fi
+    echo ""
+    
+    # Look for ZIP files
+    zip_files=(*.zip)
+    if [ -f "${zip_files[0]}" ]; then
+        print_success "Found ZIP file(s):"
+        for file in "${zip_files[@]}"; do
+            if [ -f "$file" ]; then
+                echo -e "  ${GREEN}✓${NC} $file"
+            fi
+        done
+    else
+        print_warning "No ZIP files (.zip) found in current directory"
+    fi
+    echo ""
+    
+    # Look for DOCX template files
+    template_files=(*.docx)
+    template_count=0
+    if [ -f "${template_files[0]}" ]; then
+        print_success "Found Word template file(s):"
+        for file in "${template_files[@]}"; do
+            if [ -f "$file" ]; then
+                # Skip files that look like task files
+                if [[ ! "$file" =~ ^[0-9]{4}-[A-Z]{2}-[0-9] ]]; then
+                    echo -e "  ${GREEN}✓${NC} $file"
+                    ((template_count++))
+                fi
+            fi
+        done
+        if [ $template_count -eq 0 ]; then
+            print_warning "No suitable template files found (only task files detected)"
+        fi
+    else
+        print_warning "No Word document files (.docx) found in current directory"
+    fi
+    echo ""
+    
+    print_warning "⚠️  IMPORTANT NOTES:"
+    echo "• Make sure all files are in the current directory: $(pwd)"
+    echo "• File names can contain spaces - the wizard will handle them correctly"
+    echo "• The Excel file should have task names in column O starting from row 2"
+    echo "• The ZIP file should contain all .docx task files"
+    echo "• The template file should be a blank Word document"
+    echo ""
+    
+    # Ask user to confirm files are ready
+    while true; do
+        prompt_input "🚀 Are all required files present and ready to proceed? (y/N)" files_ready "N"
+        if [[ "$files_ready" =~ ^[Yy] ]]; then
+            print_success "User confirmed files are ready"
+            break
+        elif [[ "$files_ready" =~ ^[Nn]|^$ ]]; then
+            print_error "Please ensure all required files are in the current directory before running the wizard"
+            print_info "Current directory: $(pwd)"
+            print_info "You can run 'ls -la *.xlsx *.zip *.docx' to check for files"
+            exit 0
+        else
+            print_warning "Please answer 'y' for yes or 'n' for no"
+        fi
+    done
+    
+    echo ""
+    print_success "✅ File check completed - proceeding with wizard"
+    echo ""
+}
+
 # Main wizard function
 run_wizard() {
     echo ""
@@ -407,6 +504,9 @@ run_wizard() {
     echo -e "${GREEN}║           🦫 BEBRAS DOCUMENT PROCESSING WIZARD         ║${NC}"
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════╝${NC}"
     echo ""
+    
+    # Check for required files first
+    check_required_files
     
     # Collect inputs
     print_step "Collecting Input Parameters"
