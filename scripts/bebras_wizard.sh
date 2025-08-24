@@ -233,10 +233,17 @@ extract_and_organize_files() {
     print_step "Extracting and organizing task files"
     
     # Convert ZIP file path to absolute path to avoid issues
-    ZIP_FILE_ABS="$(cd "$(dirname "$ZIP_FILE")" && pwd)/$(basename "$ZIP_FILE")"
+    if [[ "$ZIP_FILE" = /* ]]; then
+        # Already absolute path
+        ZIP_FILE_ABS="$ZIP_FILE"
+    else
+        # Convert relative path to absolute
+        ZIP_FILE_ABS="$(pwd)/$ZIP_FILE"
+    fi
     
     # Extract ZIP file
     print_info "Extracting ZIP file: $ZIP_FILE"
+    print_info "Using absolute path: $ZIP_FILE_ABS"
     cd "$WORKING_DIR"
     
     # Create tasks directory
