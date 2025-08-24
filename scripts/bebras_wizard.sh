@@ -307,6 +307,15 @@ organize_by_language() {
 process_and_number_files() {
     print_step "Processing and numbering files for mail merge"
     
+    # Convert template file path to absolute path to avoid issues
+    if [[ "$TEMPLATE_FILE" = /* ]]; then
+        # Already absolute path
+        TEMPLATE_FILE_ABS="$TEMPLATE_FILE"
+    else
+        # Convert relative path to absolute
+        TEMPLATE_FILE_ABS="$(pwd)/$TEMPLATE_FILE"
+    fi
+    
     cd "$WORKING_DIR"
     
     # Create processed directory structure
@@ -323,7 +332,7 @@ process_and_number_files() {
     
     # Copy template files
     for lang in "${LANG_ARRAY[@]}"; do
-        cp "$TEMPLATE_FILE" "$lang/Bebras${YEAR}_questions_and_solutions_${lang}.docx"
+        cp "$TEMPLATE_FILE_ABS" "$lang/Bebras${YEAR}_questions_and_solutions_${lang}.docx"
         print_info "Copied template to $lang directory"
     done
     
