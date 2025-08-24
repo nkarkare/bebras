@@ -164,7 +164,7 @@ import sys
 import os
 
 def extract_tasks():
-    excel_file = "$EXCEL_FILE"
+    excel_file = r"""$EXCEL_FILE"""
     
     try:
         print(f"Reading Excel file: {excel_file}")
@@ -182,7 +182,7 @@ def extract_tasks():
             print("No tasks found in column O starting from row 2")
             return False
         
-        output_file = "$WORKING_DIR/tasks.txt"
+        output_file = r"""$WORKING_DIR/tasks.txt"""
         with open(output_file, 'w', encoding='utf-8') as f:
             for task in tasks:
                 f.write(f"{task}\\n")
@@ -246,7 +246,7 @@ extract_and_organize_files() {
     print_success "ZIP file extracted"
     
     # Count extracted files
-    file_count=$(find tasks -name "*.docx" | wc -l)
+    file_count=$(find tasks -name "*.docx" -print0 | grep -zc .)
     print_info "Found $file_count .docx files"
     
     cd - > /dev/null
@@ -272,11 +272,11 @@ organize_by_language() {
         print_info "Processing $lang files..."
         
         # Find and copy language-specific files (case insensitive)
-        find . -iname "*_${lang}.docx" -exec cp {} "../$lang/" \\; 2>/dev/null || true
+        find . -iname "*_${lang}.docx" -exec cp '{}' "../$lang/" \\; 2>/dev/null || true
         
         # Copy solution files (case insensitive for both SOLN and soln)
-        find . -iname "*_EN_[Ss][Oo][Ll][Nn].docx" -exec cp {} "../$lang/" \\; 2>/dev/null || true
-        find . -iname "*-EN_[Ss][Oo][Ll][Nn].docx" -exec cp {} "../$lang/" \\; 2>/dev/null || true
+        find . -iname "*_EN_[Ss][Oo][Ll][Nn].docx" -exec cp '{}' "../$lang/" \\; 2>/dev/null || true
+        find . -iname "*-EN_[Ss][Oo][Ll][Nn].docx" -exec cp '{}' "../$lang/" \\; 2>/dev/null || true
         
         lang_file_count=$(ls "../$lang" 2>/dev/null | wc -l)
         print_info "$lang: $lang_file_count files"
