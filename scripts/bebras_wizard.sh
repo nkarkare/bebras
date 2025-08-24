@@ -289,11 +289,11 @@ organize_by_language() {
         print_info "Processing $lang files..."
         
         # Find and copy language-specific files (case insensitive)
-        find . -iname "*_${lang}.docx" -exec cp '{}' "../$lang/" \\; 2>/dev/null || true
+        find . -iname "*_${lang}.docx" -exec cp '{}' "../$lang/" \; 2>/dev/null || true
         
         # Copy solution files (case insensitive for both SOLN and soln)
-        find . -iname "*_EN_[Ss][Oo][Ll][Nn].docx" -exec cp '{}' "../$lang/" \\; 2>/dev/null || true
-        find . -iname "*-EN_[Ss][Oo][Ll][Nn].docx" -exec cp '{}' "../$lang/" \\; 2>/dev/null || true
+        find . -iname "*_EN_[Ss][Oo][Ll][Nn].docx" -exec cp '{}' "../$lang/" \; 2>/dev/null || true
+        find . -iname "*-EN_[Ss][Oo][Ll][Nn].docx" -exec cp '{}' "../$lang/" \; 2>/dev/null || true
         
         lang_file_count=$(ls "../$lang" 2>/dev/null | wc -l)
         print_info "$lang: $lang_file_count files"
